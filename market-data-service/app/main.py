@@ -45,12 +45,31 @@
 #     return {"message": "Welcome to the Crypto Market API Service!"}
 
 # app/main.py
+# from fastapi import FastAPI
+# from app.routers import currencies, global_stats, history, movers, prices
+
+# app = FastAPI(title="Market Data Service", version="1.0.0")
+
+# # Include routers (each router file defines its own /prefix)
+# app.include_router(currencies.router, prefix="/api/v1")
+# app.include_router(global_stats.router, prefix="/api/v1")
+# app.include_router(history.router, prefix="/api/v1")
+# app.include_router(movers.router, prefix="/api/v1")
+# app.include_router(prices.router, prefix="/api/v1")
+
+
+# @app.get("/")
+# async def root():
+#     return {"message": "Market Data Service running"}
+
 from fastapi import FastAPI
 from app.routers import currencies, global_stats, history, movers, prices
+from app.db import store
+import asyncio
 
 app = FastAPI(title="Market Data Service", version="1.0.0")
 
-# Include routers (each router file defines its own /prefix)
+# Include routers
 app.include_router(currencies.router, prefix="/api/v1")
 app.include_router(global_stats.router, prefix="/api/v1")
 app.include_router(history.router, prefix="/api/v1")
@@ -61,3 +80,12 @@ app.include_router(prices.router, prefix="/api/v1")
 @app.get("/")
 async def root():
     return {"message": "Market Data Service running"}
+
+
+@app.on_event("startup")
+async def startup_event():
+    """
+    On startup, start background tasks:
+    - Refresh currency list every 3 minutes
+    """
+    asyncio.create_task(store.refresh_currencies_loop(interval_seconds=180))
