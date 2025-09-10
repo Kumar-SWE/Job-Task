@@ -183,12 +183,36 @@ def fetch_currency_detail(coin_id: str) -> Dict[str, Any]:
     }
 
 
-def fetch_prices(coin_ids: List[str], vs_currency: str = "inr") -> Dict[str, Dict[str, float]]:
+# def fetch_prices(coin_ids: List[str], vs_currency: str = "inr") -> Dict[str, Dict[str, float]]:
+#     if not coin_ids:
+#         return {}
+#     params = {"ids": ",".join(coin_ids), "vs_currencies": vs_currency}
+#     data = _get("/simple/price", params=params)
+#     return {cid: {vs_currency: val.get(vs_currency)} for cid, val in data.items()}
+
+def fetch_prices(coin_ids: List[str], vs_currency: str = "inr") -> Dict[str, Dict[str, Any]]:
     if not coin_ids:
         return {}
-    params = {"ids": ",".join(coin_ids), "vs_currencies": vs_currency}
-    data = _get("/simple/price", params=params)
-    return {cid: {vs_currency: val.get(vs_currency)} for cid, val in data.items()}
+
+    params = {
+        "vs_currency": vs_currency,
+        "ids": ",".join(coin_ids),
+        "order": "market_cap_desc",
+        "per_page": len(coin_ids),
+        "page": 1,
+        "sparkline": "false"
+    }
+    data = _get("/coins/markets", params=params)
+
+    return {
+        c["id"]: {
+            "inr": c.get("current_price"),
+            "inr_market_cap": c.get("market_cap"),
+            "inr_24h_vol": c.get("total_volume")
+        }
+        for c in data
+    }
+
 
 
 def fetch_history(coin_id: str, days: int = 7, vs_currency: str = "inr") -> List[Dict[str, Any]]:

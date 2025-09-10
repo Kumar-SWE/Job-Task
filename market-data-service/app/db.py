@@ -737,3 +737,335 @@ class DataStore:
 # singleton store
 store = DataStore()
 store.load()
+
+
+# import asyncio
+# import aiohttp
+# import mysql.connector
+# from datetime import datetime
+
+
+# class DataStore:
+#     def __init__(self):
+#         # In-memory cache
+#         self.currencies = {}
+
+#         # MySQL connection
+#         self.conn = mysql.connector.connect(
+#             host="localhost",
+#             user="root",         # change if you use another user
+#             password="yourpassword",  # replace with your MySQL root password
+#             database="crypto_data"
+#         )
+#         self.cursor = self.conn.cursor()
+
+#         # Make sure table exists
+#         self.cursor.execute("""
+#             CREATE TABLE IF NOT EXISTS currencies (
+#                 id VARCHAR(50) PRIMARY KEY,
+#                 symbol VARCHAR(20),
+#                 name VARCHAR(100),
+#                 logo_url VARCHAR(255),
+#                 rank INT,
+#                 current_price_inr DOUBLE,
+#                 market_cap_inr DOUBLE,
+#                 volume_24h_inr DOUBLE,
+#                 circulating_supply DOUBLE,
+#                 last_updated DATETIME
+#             )
+#         """)
+#         self.conn.commit()
+
+#     async def fetch_markets(self):
+#         """Fetch market data (price, market cap, volume, etc.) from CoinGecko"""
+#         url = (
+#             "https://api.coingecko.com/api/v3/coins/markets"
+#             "?vs_currency=inr&order=market_cap_desc&per_page=50&page=1&sparkline=false"
+#         )
+
+#         async with aiohttp.ClientSession() as session:
+#             async with session.get(url) as resp:
+#                 if resp.status == 200:
+#                     data = await resp.json()
+#                     self._update_currencies(data)
+#                 else:
+#                     print(f"[DataStore] Failed to fetch markets: {resp.status}")
+
+#     def _update_currencies(self, data):
+#         now = datetime.now()
+
+#         for coin in data:
+#             cid = coin.get("id")
+#             self.currencies[cid] = {
+#                 "symbol": coin.get("symbol"),
+#                 "name": coin.get("name"),
+#                 "logo_url": coin.get("image"),
+#                 "rank": coin.get("market_cap_rank"),
+#                 "current_price_inr": coin.get("current_price"),
+#                 "market_cap_inr": coin.get("market_cap"),
+#                 "volume_24h_inr": coin.get("total_volume"),
+#                 "circulating_supply": coin.get("circulating_supply"),
+#                 "last_updated": now,
+#             }
+
+#             # Upsert into MySQL
+#             self.cursor.execute("""
+#                 INSERT INTO currencies (id, symbol, name, logo_url, rank, current_price_inr, 
+#                                         market_cap_inr, volume_24h_inr, circulating_supply, last_updated)
+#                 VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+#                 ON DUPLICATE KEY UPDATE
+#                     symbol=VALUES(symbol),
+#                     name=VALUES(name),
+#                     logo_url=VALUES(logo_url),
+#                     rank=VALUES(rank),
+#                     current_price_inr=VALUES(current_price_inr),
+#                     market_cap_inr=VALUES(market_cap_inr),
+#                     volume_24h_inr=VALUES(volume_24h_inr),
+#                     circulating_supply=VALUES(circulating_supply),
+#                     last_updated=VALUES(last_updated)
+#             """, (
+#                 cid,
+#                 coin.get("symbol"),
+#                 coin.get("name"),
+#                 coin.get("image"),
+#                 coin.get("market_cap_rank"),
+#                 coin.get("current_price"),
+#                 coin.get("market_cap"),
+#                 coin.get("total_volume"),
+#                 coin.get("circulating_supply"),
+#                 now
+#             ))
+
+#         self.conn.commit()
+#         print(f"[DataStore] Markets refreshed at {now}")
+
+#     async def refresh_loop(self, interval_seconds: int = 100):
+#         """Auto-refresh markets every X seconds"""
+#         while True:
+#             try:
+#                 await self.fetch_markets()
+#             except Exception as e:
+#                 print(f"[DataStore] Error refreshing markets: {e}")
+#             await asyncio.sleep(interval_seconds)
+
+
+# # Create global store instance
+# store = DataStore()
+
+# import requests
+# import mysql.connector
+# from datetime import datetime
+
+
+# class DataStore:
+#     def __init__(self):
+#         # In-memory cache
+#         self.currencies = {}
+
+#         # MySQL connection
+#         self.conn = mysql.connector.connect(
+#             host="localhost",
+#             user="root",         # change if you use another user
+#             password="1234",  # replace with your MySQL root password
+#             database="crypto_data"
+#         )
+#         self.cursor = self.conn.cursor()
+
+#         # Make sure table exists
+#         self.cursor.execute("""
+#             CREATE TABLE IF NOT EXISTS currencies (
+#                 id VARCHAR(50) PRIMARY KEY,
+#                 symbol VARCHAR(20),
+#                 name VARCHAR(100),
+#                 logo_url VARCHAR(255),
+#                 rank INT,
+#                 current_price_inr DOUBLE,
+#                 market_cap_inr DOUBLE,
+#                 volume_24h_inr DOUBLE,
+#                 circulating_supply DOUBLE,
+#                 last_updated DATETIME
+#             )
+#         """)
+#         self.conn.commit()
+
+#     def fetch_markets(self):
+#         """Fetch market data (price, market cap, volume, etc.) from CoinGecko"""
+#         url = (
+#             "https://api.coingecko.com/api/v3/coins/markets"
+#             "?vs_currency=inr&order=market_cap_desc&per_page=50&page=1&sparkline=false"
+#         )
+
+#         try:
+#             resp = requests.get(url, timeout=10)
+#             resp.raise_for_status()
+#             data = resp.json()
+#             self._update_currencies(data)
+#         except Exception as e:
+#             print(f"[DataStore] Error fetching markets: {e}")
+
+#     def _update_currencies(self, data):
+#         now = datetime.now()
+
+#         for coin in data:
+#             cid = coin.get("id")
+#             self.currencies[cid] = {
+#                 "symbol": coin.get("symbol"),
+#                 "name": coin.get("name"),
+#                 "logo_url": coin.get("image"),
+#                 "rank": coin.get("market_cap_rank"),
+#                 "current_price_inr": coin.get("current_price"),
+#                 "market_cap_inr": coin.get("market_cap"),
+#                 "volume_24h_inr": coin.get("total_volume"),
+#                 "circulating_supply": coin.get("circulating_supply"),
+#                 "last_updated": now,
+#             }
+
+#             # Upsert into MySQL
+#             self.cursor.execute("""
+#                 INSERT INTO currencies (id, symbol, name, logo_url, rank, current_price_inr, 
+#                                         market_cap_inr, volume_24h_inr, circulating_supply, last_updated)
+#                 VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+#                 ON DUPLICATE KEY UPDATE
+#                     symbol=VALUES(symbol),
+#                     name=VALUES(name),
+#                     logo_url=VALUES(logo_url),
+#                     rank=VALUES(rank),
+#                     current_price_inr=VALUES(current_price_inr),
+#                     market_cap_inr=VALUES(market_cap_inr),
+#                     volume_24h_inr=VALUES(volume_24h_inr),
+#                     circulating_supply=VALUES(circulating_supply),
+#                     last_updated=VALUES(last_updated)
+#             """, (
+#                 cid,
+#                 coin.get("symbol"),
+#                 coin.get("name"),
+#                 coin.get("image"),
+#                 coin.get("market_cap_rank"),
+#                 coin.get("current_price"),
+#                 coin.get("market_cap"),
+#                 coin.get("total_volume"),
+#                 coin.get("circulating_supply"),
+#                 now
+#             ))
+
+#         self.conn.commit()
+#         print(f"[DataStore] Markets refreshed at {now}")
+
+#     def refresh_loop(self, interval_seconds: int = 100):
+#         """Auto-refresh markets every X seconds (blocking loop)"""
+#         import time
+#         while True:
+#             try:
+#                 self.fetch_markets()
+#             except Exception as e:
+#                 print(f"[DataStore] Error refreshing markets: {e}")
+#             time.sleep(interval_seconds)
+
+
+# # Create global store instance
+# store = DataStore()
+
+
+# import requests
+# import mysql.connector
+# from datetime import datetime
+
+# class DataStore:
+#     def __init__(self):
+#         # In-memory cache
+#         self.currencies = {}
+
+#         # MySQL connection
+#         self.conn = mysql.connector.connect(
+#             host="localhost",
+#             user="root",         # change if needed
+#             password="1234",  # replace with your MySQL root password
+#             database="crypto_data"
+#         )
+#         self.cursor = self.conn.cursor()
+
+#         # Make sure table exists
+#         self.cursor.execute("""
+#             CREATE TABLE IF NOT EXISTS currencies (
+#                 id VARCHAR(50) PRIMARY KEY,
+#                 symbol VARCHAR(20),
+#                 name VARCHAR(100),
+#                 logo_url VARCHAR(255),
+#                 rank INT,
+#                 current_price_inr DOUBLE,
+#                 market_cap_inr DOUBLE,
+#                 volume_24h_inr DOUBLE,
+#                 circulating_supply DOUBLE,
+#                 last_updated DATETIME
+#             )
+#         """)
+#         self.conn.commit()
+
+#     def fetch_markets(self):
+#         """Fetch market data (price, market cap, volume, etc.) from CoinGecko"""
+#         url = (
+#             "https://api.coingecko.com/api/v3/coins/markets"
+#             "?vs_currency=inr&order=market_cap_desc&per_page=50&page=1&sparkline=false"
+#         )
+
+#         resp = requests.get(url, timeout=10)
+#         if resp.status_code == 200:
+#             data = resp.json()
+#             self._update_currencies(data)
+#         else:
+#             print(f"[DataStore] Failed to fetch markets: {resp.status_code}")
+
+#     def _update_currencies(self, data):
+#         now = datetime.now()
+
+#         for coin in data:
+#             cid = coin.get("id")
+#             self.currencies[cid] = {
+#                 "symbol": coin.get("symbol"),
+#                 "name": coin.get("name"),
+#                 "logo_url": coin.get("image"),
+#                 "rank": coin.get("market_cap_rank"),
+#                 "current_price_inr": coin.get("current_price"),
+#                 "market_cap_inr": coin.get("market_cap"),
+#                 "volume_24h_inr": coin.get("total_volume"),
+#                 "circulating_supply": coin.get("circulating_supply"),
+#                 "last_updated": now,
+#             }
+
+#             # Upsert into MySQL
+#             self.cursor.execute("""
+#                 INSERT INTO currencies (id, symbol, name, logo_url, rank, current_price_inr, 
+#                                         market_cap_inr, volume_24h_inr, circulating_supply, last_updated)
+#                 VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+#                 ON DUPLICATE KEY UPDATE
+#                     symbol=VALUES(symbol),
+#                     name=VALUES(name),
+#                     logo_url=VALUES(logo_url),
+#                     rank=VALUES(rank),
+#                     current_price_inr=VALUES(current_price_inr),
+#                     market_cap_inr=VALUES(market_cap_inr),
+#                     volume_24h_inr=VALUES(volume_24h_inr),
+#                     circulating_supply=VALUES(circulating_supply),
+#                     last_updated=VALUES(last_updated)
+#             """, (
+#                 cid,
+#                 coin.get("symbol"),
+#                 coin.get("name"),
+#                 coin.get("image"),
+#                 coin.get("market_cap_rank"),
+#                 coin.get("current_price"),
+#                 coin.get("market_cap"),
+#                 coin.get("total_volume"),
+#                 coin.get("circulating_supply"),
+#                 now
+#             ))
+
+#         self.conn.commit()
+#         print(f"[DataStore] Markets refreshed at {now}")
+
+
+# # Create global store instance
+# store = DataStore()
+
+# if __name__ == "__main__":
+#     store.fetch_markets()
