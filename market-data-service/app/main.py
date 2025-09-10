@@ -88,4 +88,4 @@ async def startup_event():
     On startup, start background tasks:
     - Refresh currency list every 3 minutes
     """
-    asyncio.create_task(store.refresh_currencies_loop(interval_seconds=180))
+    asyncio.create_task(store.refresh_loop(interval_seconds=100))
