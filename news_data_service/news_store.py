@@ -17,5 +17,8 @@ class NewsStore:
             except Exception as e:
                 print(f"[NewsStore] Error in refresh loop: {e}")
             await asyncio.sleep(interval_seconds)
+    
+    def get_news(self):   
+        return self.news_list
 
 store = NewsStore()

@@ -118,7 +118,7 @@ async def get_currencies():
     """Return all currencies from MySQL"""
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM currencies ORDER BY rank ASC LIMIT 50")
+    cursor.execute("SELECT * FROM currencies ORDER BY `rank` ASC LIMIT 50")
     result = cursor.fetchall()
     cursor.close()
     conn.close()
