@@ -95,6 +95,7 @@ from fastapi import FastAPI, HTTPException
 from app.db import store
 import asyncio
 import mysql.connector
+from app.routers import currencies, prices, history, global_stats, movers
 
 app = FastAPI(title="Market Data Service", version="1.0.0")
 
@@ -111,6 +112,13 @@ def get_db_connection():
 @app.get("/")
 async def root():
     return {"message": "Market Data Service running"}
+
+
+# app.include_router(currencies.router, prefix="/api/v1")
+# app.include_router(prices.router, prefix="/api/v1")
+app.include_router(history.router, prefix="/api/v1")
+app.include_router(global_stats.router, prefix="/api/v1")
+app.include_router(movers.router, prefix="/api/v1")
 
 
 @app.get("/api/v1/currencies")
